@@ -6,9 +6,9 @@ Attempting to bind to HOST environment variable: 0.0.0.0
 If this was unintentional, check that you haven't mistakenly set it in your shell.
 Learn more here: https://cra.link/advanced-config
 
-(node:5168) [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning: 'onAfterSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+(node:5513) [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning: 'onAfterSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
 (Use `node --trace-deprecation ...` to show where the warning was created)
-(node:5168) [DEP_WEBPACK_DEV_SERVER_ON_BEFORE_SETUP_MIDDLEWARE] DeprecationWarning: 'onBeforeSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+(node:5513) [DEP_WEBPACK_DEV_SERVER_ON_BEFORE_SETUP_MIDDLEWARE] DeprecationWarning: 'onBeforeSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
 Starting the development server...
 
 Compiled successfully!
@@ -25,3 +25,68 @@ webpack compiled successfully
 Compiling...
 Compiled successfully!
 webpack compiled successfully
+Compiling...
+Failed to compile.
+
+Module not found: Error: Can't resolve 'jspdf' in '/home/kavia/workspace/code-generation/slideviewpro-106015-106024/web_frontend/src'
+ERROR in ./src/PDFExporter.js 4:0-26
+Module not found: Error: Can't resolve 'jspdf' in '/home/kavia/workspace/code-generation/slideviewpro-106015-106024/web_frontend/src'
+
+ERROR in ./src/PDFExporter.js 5:0-38
+Module not found: Error: Can't resolve 'html2canvas' in '/home/kavia/workspace/code-generation/slideviewpro-106015-106024/web_frontend/src'
+
+webpack compiled with 2 errors
+Compiling...
+Failed to compile.
+
+Module not found: Error: Can't resolve 'jspdf' in '/home/kavia/workspace/code-generation/slideviewpro-106015-106024/web_frontend/src'
+LOG from webpack.FileSystemInfo
+<w> Managed item /home/kavia/workspace/code-generation/slideviewpro-106015-106024/web_frontend/node_modules/jspdf isn't a directory or doesn't contain a package.json (see snapshot.managedPaths option)
+<w> Managed item /home/kavia/workspace/code-generation/slideviewpro-106015-106024/web_frontend/node_modules/html2canvas isn't a directory or doesn't contain a package.json (see snapshot.managedPaths option)
++ 14 hidden lines
+
+ERROR in ./src/PDFExporter.js 4:0-26
+Module not found: Error: Can't resolve 'jspdf' in '/home/kavia/workspace/code-generation/slideviewpro-106015-106024/web_frontend/src'
+
+ERROR in ./src/PDFExporter.js 5:0-38
+Module not found: Error: Can't resolve 'html2canvas' in '/home/kavia/workspace/code-generation/slideviewpro-106015-106024/web_frontend/src'
+
+webpack compiled with 2 errors
+Compiling...
+Compiled with warnings.
+
+Failed to parse source map from 'html2canvas.js.map': SyntaxError: Unexpected end of JSON input
+
+Failed to parse source map from 'jspdf.es.min.js.map': SyntaxError: Unexpected end of JSON input
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in ./node_modules/html2canvas/dist/html2canvas.js
+Module Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+Failed to parse source map from 'html2canvas.js.map': SyntaxError: Unexpected end of JSON input
+
+WARNING in ./node_modules/jspdf/dist/jspdf.es.min.js
+Module Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+Failed to parse source map from 'jspdf.es.min.js.map': SyntaxError: Unexpected end of JSON input
+
+webpack compiled with 2 warnings
+Compiling...
+Compiled with warnings.
+
+Failed to parse source map from 'html2canvas.js.map': SyntaxError: Unexpected end of JSON input
+
+Failed to parse source map from 'jspdf.es.min.js.map': SyntaxError: Unexpected end of JSON input
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in ./node_modules/html2canvas/dist/html2canvas.js
+Module Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+Failed to parse source map from 'html2canvas.js.map': SyntaxError: Unexpected end of JSON input
+
+WARNING in ./node_modules/jspdf/dist/jspdf.es.min.js
+Module Warning (from ./node_modules/source-map-loader/dist/cjs.js):
+Failed to parse source map from 'jspdf.es.min.js.map': SyntaxError: Unexpected end of JSON input
+
+webpack compiled with 2 warnings

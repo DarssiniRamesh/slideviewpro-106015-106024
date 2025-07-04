@@ -4,6 +4,7 @@ import Slide from "./Slide";
 import VlinderLogo from "./VlinderLogo";
 import { SLIDE_DECK_20 } from "./SlideDeck20";
 import "./slideDeckTheme.css";
+import { exportSlidesAsPDF } from "./PDFExporter";
 
 const SLIDE_COUNT = 20;
 
@@ -46,9 +47,15 @@ function App() {
   );
 
   // PUBLIC_INTERFACE
-  const downloadSlidesAsPDF = () => {
-    // For MVP: use browser print (user can Save as PDF)
-    window.print();
+  const downloadSlidesAsPDF = async () => {
+    // Use jsPDF+html2canvas to accurately capture all slides with layout and logo
+    const logoPath =
+      process.env.PUBLIC_URL + "/20250704_094640_vlinder-logo-with-title.png";
+    await exportSlidesAsPDF({
+      slides,
+      SlideComponent: Slide,
+      logoPath,
+    });
   };
 
   // -- Full slide content (all 20) is in SlideDeck20.js using SLIDE_DECK_20
