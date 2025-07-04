@@ -11,36 +11,72 @@ import html2canvas from "html2canvas";
  * @param {string} logoPath - Public URL path to logo image for branding.
  * @returns {Promise<void>}
  */
+/**
+ * PUBLIC_INTERFACE
+ * Generates a multi-slide PDF with all slides as they appear in the viewer, including branding and logos.
+ * Handles async image load and DOM rendering issues for consistent output.
+ * @param {Object[]} slides - Array of slide objects with a .render property (function or JSX).
+ * @param {function} SlideComponent - React component for rendering a slide.
+ * @param {string} logoPath - Public URL path to logo image for branding.
+ * @returns {Promise<void>}
+ */
 export async function exportSlidesAsPDF({ slides, SlideComponent, logoPath }) {
-  // PDF settings: approx size as A4 landscape, matching slide aspect ratio
+  // PDF page matches slide/card size; A4 landscape(like PowerPoint export).
+  const PDF_WIDTH = 850;
+  const PDF_HEIGHT = 530;
   const pdf = new jsPDF({
     orientation: "landscape",
     unit: "px",
-    format: [850, 530], // width x height (matches slide/card size)
+    format: [PDF_WIDTH, PDF_HEIGHT],
     compress: true,
     putOnlyUsedFonts: true
   });
 
-  // Helper: render slide into off-DOM, capture as image, then remove
+  // Ensure DOM is ready and any loading overlay is hidden before starting
+  // Helper: Render a slide to off-screen DOM, wait for all images and fonts, then capture
   async function renderSlideToImage(slideNum) {
     return new Promise((resolve) => {
+      // Create container for off-screen rendering
       const container = document.createElement("div");
-      // Optional: ID to help debug
       container.id = `pdf-slide-preview-${slideNum + 1}`;
-      // Style: mimic viewer, invisible, fixed position, right size
       Object.assign(container.style, {
         position: "fixed",
         left: "-99999px",
         top: "0px",
-        width: "850px",
-        height: "530px",
-        boxSizing: "border-box",
+        width: PDF_WIDTH + "px",
+        height: PDF_HEIGHT + "px",
+        background: "#fff",
         zIndex: -1,
-        background: "white",
+        overflow: "hidden",
         pointerEvents: "none",
+        boxSizing: "border-box",
       });
+      document.body.appendChild(container);
 
-      // React: render slide into container
+      // Function to wait for all <img> elements to load
+      function waitForImagesLoaded(node, timeout = 2200) {
+        const imgs = node.querySelectorAll("img");
+        if (imgs.length === 0) return Promise.resolve();
+        let loadedCount = 0;
+        let erroredCount = 0;
+        return new Promise((resolveImgs) => {
+          function checkDone() {
+            if (loadedCount + erroredCount === imgs.length) resolveImgs();
+          }
+          imgs.forEach(img => {
+            if (img.complete) {
+              loadedCount++;
+              checkDone();
+            } else {
+              img.onload = () => { loadedCount++; checkDone(); };
+              img.onerror = () => { erroredCount++; checkDone(); };
+            }
+          });
+          setTimeout(resolveImgs, timeout); // fallback after a max wait
+        });
+      }
+
+      // Render slide content
       import("react-dom").then((ReactDOM) => {
         ReactDOM.render(
           <SlideComponent
@@ -52,41 +88,51 @@ export async function exportSlidesAsPDF({ slides, SlideComponent, logoPath }) {
           />,
           container,
           async () => {
-            document.body.appendChild(container);
-            // Wait a short moment for fonts/images
+            // Wait for images (logo, etc) to load
+            await waitForImagesLoaded(container, 2200);
+            // Wait a tick for Google Fonts (if used)
+            if (document.fonts && document.fonts.ready) {
+              await document.fonts.ready;
+            }
+            // Short extra wait to maximize render stability
             setTimeout(async () => {
               try {
                 const canvas = await html2canvas(container, {
                   backgroundColor: "#fff",
-                  scale: 2,
+                  scale: 2, // sharper print, but keep RAM OK
                   useCORS: true,
                   allowTaint: true,
-                  // Image/branding loaded from public if needed
+                  logging: false,
+                  windowWidth: PDF_WIDTH,
+                  windowHeight: PDF_HEIGHT,
                 });
                 const imgData = canvas.toDataURL("image/jpeg", 0.98);
                 resolve({ imgData, width: canvas.width, height: canvas.height });
-              } catch (err) {
-                resolve({ error: err });
+              } catch (error) {
+                resolve({ error });
               } finally {
                 ReactDOM.unmountComponentAtNode(container);
                 container.remove();
               }
-            }, 280); // ~delay for imagery to appear
+            }, 120); // Slight delay after DOM ready (may tune ~100-200ms)
           }
         );
       });
     });
   }
 
-  // Sequentially render all slides to PDF
+  // Sequentially render every slide to an image and add to PDF
   for (let i = 0; i < slides.length; ++i) {
     // eslint-disable-next-line no-await-in-loop
     const { imgData, error } = await renderSlideToImage(i);
-    if (error) continue;
-
-    if (i !== 0) pdf.addPage();
-    pdf.addImage(imgData, "JPEG", 0, 0, 850, 530);
+    if (error || !imgData) {
+      // Could optionally alert or log error for this slide
+      continue;
+    }
+    if (i !== 0) pdf.addPage([PDF_WIDTH, PDF_HEIGHT], "landscape");
+    pdf.addImage(imgData, "JPEG", 0, 0, PDF_WIDTH, PDF_HEIGHT);
   }
 
+  // Save dialog (triggers PDF download)
   pdf.save("Vlinder_Slides_Deck.pdf");
 }
