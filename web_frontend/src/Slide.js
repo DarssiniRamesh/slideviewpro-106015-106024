@@ -1,11 +1,37 @@
 import React from "react";
+import { getBlockComponent } from "./components/BlockRegistry";
 
 /**
  * PUBLIC_INTERFACE
- * Reusable Slide wrapper for deck slides; expects a `render` prop (function or JSX).
- * Props: { slideNumber, totalSlides, render }
+ * Modular Slide wrapper. If 'render' is a set of modular blocks (as in new deck), dynamically render slide content
+ * using a registry keyed by component 'type'. Fallback to rendering JSX/function for legacy compatibility.
+ * Props: { slideNumber, totalSlides, render (blocks|JSX|function|object) }
  */
 function Slide({ slideNumber, totalSlides, render }) {
+  const isModular =
+    Array.isArray(render?.components) &&
+    render?.components.every((blk) => blk && typeof blk.type === "string");
+
+  function renderBlocks(blocks) {
+    return blocks.map((blk, idx) => {
+      // Support nested children (e.g., for layout, blocks, etc. in deck) in a future expansion.
+      // For now, just render simple single-level blocks for core types.
+      const Comp = getBlockComponent(blk.type);
+      if (!Comp) {
+        // Unrecognized type: fall back to a div
+        return (
+          <div key={blk.key || idx} style={blk.style}>
+            [Unknown block: {blk.type}]
+          </div>
+        );
+      }
+      // Pass all block props (key, text, style, etc.) except "type"
+      const { type, ...rest } = blk;
+      // Use blk.key for React key if available -- fallback to idx
+      return <Comp key={blk.key || idx} {...rest} />;
+    });
+  }
+
   return (
     <main
       style={{
@@ -25,14 +51,20 @@ function Slide({ slideNumber, totalSlides, render }) {
       aria-label={`Slide ${slideNumber} of ${totalSlides}`}
       tabIndex={0}
     >
-      {typeof render === "function" ? render() : render}
-      <div style={{
-        position: "absolute",
-        right: 24,
-        bottom: 18,
-        color: "#bababa",
-        fontSize: 15
-      }}>
+      {isModular
+        ? renderBlocks(render.components)
+        : typeof render === "function"
+        ? render()
+        : render}
+      <div
+        style={{
+          position: "absolute",
+          right: 24,
+          bottom: 18,
+          color: "#bababa",
+          fontSize: 15,
+        }}
+      >
         Slide {slideNumber} / {totalSlides}
       </div>
     </main>
