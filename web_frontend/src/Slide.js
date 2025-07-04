@@ -1,57 +1,40 @@
 import React from "react";
-import VlinderLogo from "./VlinderLogo";
-import SlideImage from "./SlideImage";
 
-// PUBLIC_INTERFACE
-function Slide({ slideNumber, title, body, diagram, branding, totalSlides }) {
-  /**
-   * Slide rendering logic — Slide is centered and responsive, displays logo, diagrams, etc.
-   * slideNumber: int (1-based)
-   * title: string
-   * body: JSX/string
-   * diagram: optional image src or <SlideImage />
-   * branding: boolean — if true, show Vlinder logo
-   */
+/**
+ * PUBLIC_INTERFACE
+ * Reusable Slide wrapper for deck slides; expects a `render` prop (function or JSX).
+ * Props: { slideNumber, totalSlides, render }
+ */
+function Slide({ slideNumber, totalSlides, render }) {
   return (
     <main
       style={{
         margin: "0 auto",
-        maxWidth: 660,
-        minHeight: 340,
-        background: "var(--bg-secondary)",
+        maxWidth: 850,
+        minHeight: 420,
+        position: "relative",
+        background: "var(--primary-bg, #fff)",
         borderRadius: 18,
         boxShadow: "0 8px 24px rgba(40,44,52,0.09)",
-        padding: "2.5rem 2rem 2rem 2rem",
+        padding: "3.3rem 3.6rem 3.0rem 3.6rem",
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
+        alignItems: "stretch",
+        justifyContent: "center"
       }}
       aria-label={`Slide ${slideNumber} of ${totalSlides}`}
       tabIndex={0}
     >
-      {branding && (
-        <div style={{ alignSelf: "flex-end", marginBottom: "-18px" }}>
-          <VlinderLogo style={{ width: 56, height: 56 }} />
-        </div>
-      )}
-      <h2 style={{ marginTop: branding ? 0 : 8, color: "#1565c0" }}>{title}</h2>
-      <div
-        style={{
-          margin: "16px 0",
-          fontSize: "1.13rem",
-          color: "var(--text-primary)",
-        }}
-      >
-        {body}
-      </div>
-      {diagram && (
-        <div style={{ margin: "14px 0 10px 0" }}>
-          <SlideImage src={diagram} alt="Diagram" />
-        </div>
-      )}
-      <footer style={{ marginTop: "auto", color: "#b0b0b0", fontSize: 13 }}>
+      {typeof render === "function" ? render() : render}
+      <div style={{
+        position: "absolute",
+        right: 24,
+        bottom: 18,
+        color: "#bababa",
+        fontSize: 15
+      }}>
         Slide {slideNumber} / {totalSlides}
-      </footer>
+      </div>
     </main>
   );
 }
