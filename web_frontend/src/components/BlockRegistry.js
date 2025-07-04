@@ -2,6 +2,9 @@ import TextBlock from "./TextBlock";
 import ImageBlock from "./ImageBlock";
 import DiagramBlock from "./DiagramBlock";
 import LogoBlock from "./LogoBlock";
+import LayoutRowBlock from "./LayoutRowBlock";
+import SpacerBlock from "./SpacerBlock";
+import FooterBlock from "./FooterBlock";
 
 // Add further block types as needed.
 export const BLOCK_REGISTRY = {
@@ -9,7 +12,10 @@ export const BLOCK_REGISTRY = {
   image: ImageBlock,
   diagram: DiagramBlock,
   logo: LogoBlock,
-  // Support other blocks (footer, spacer, list, etc.) as the app expands.
+  "layout-row": LayoutRowBlock,
+  spacer: SpacerBlock,
+  footer: FooterBlock,
+  // Support other blocks (list, platform-card, badges, etc.) as the app expands.
 };
 
 /**

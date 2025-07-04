@@ -15,6 +15,7 @@ function Slide({ slideNumber, totalSlides, render, editMode, onBlockUpdate, logo
   function renderBlocks(blocks) {
     return blocks.map((blk, idx) => {
       const Comp = getBlockComponent(blk.type);
+
       if (!Comp) {
         return (
           <div key={blk.key || idx} style={blk.style}>
@@ -22,13 +23,16 @@ function Slide({ slideNumber, totalSlides, render, editMode, onBlockUpdate, logo
           </div>
         );
       }
-      const { type, ...rest } = blk;
-      // For logo block, forward logoDataUrl
+
+      // -- The special handling for stock blocks --
       if (blk.type === "logo") {
+        // For logo block, forward logoDataUrl.
+        const { type, ...rest } = blk;
         return <Comp key={blk.key || idx} {...rest} logoDataUrl={logoDataUrl} />;
       }
-      // If block is diagram, supply handlers for live diagram saving
       if (blk.type === "diagram") {
+        // Diagram: live-editable in editor, read-only otherwise.
+        const { type, ...rest } = blk;
         return (
           <Comp
             key={blk.key || idx}
@@ -40,6 +44,36 @@ function Slide({ slideNumber, totalSlides, render, editMode, onBlockUpdate, logo
           />
         );
       }
+      if (blk.type === "layout-row") {
+        // Render its children as modular blocks
+        // Accept both children as already-rendered or as config; handle config recursively
+        const { children = [], ...rest } = blk;
+        return (
+          <Comp key={blk.key || idx} {...rest}>
+            {Array.isArray(children)
+              ? children.map((child, cidx) =>
+                  // Modular render any subblocks
+                  child && typeof child.type === "string"
+                    ? renderBlocks([child])[0]
+                    : child
+                )
+              : children}
+          </Comp>
+        );
+      }
+      if (blk.type === "spacer") {
+        // Map legacy and prop naming
+        const { flex = 1, minHeight = 10, style = {}, ...rest } = blk;
+        return <Comp key={blk.key || idx} flex={flex} minHeight={minHeight} style={style} {...rest} />;
+      }
+      if (blk.type === "footer") {
+        // FooterBlock: pass text and style
+        const { text, style = {}, ...rest } = blk;
+        return <Comp key={blk.key || idx} text={text} style={style} {...rest} />;
+      }
+
+      // Default handler: pass props as-is
+      const { type, ...rest } = blk;
       return <Comp key={blk.key || idx} {...rest} />;
     });
   }
