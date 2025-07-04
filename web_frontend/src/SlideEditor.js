@@ -9,9 +9,11 @@ import { SLIDE_DECK_20 } from "./SlideDeck20";
  * SlideEditor is a WYSIWYG editor for slides. It manages slide state, current selection, drag-and-drop,
  * and provides UI for editing content, adding/removing slides, and component palette integration.
  *
- * Props: none (for now - operates on local state; future: external deck, callbacks)
+ * Props:
+ *  - logoDataUrl: Current DataURL for custom logo (optional, for dynamic app state sharing)
+ *  - setLogoDataUrl: Function to change the logo (optional, for custom upload from BrandingControl)
  */
-function SlideEditor() {
+function SlideEditor({ logoDataUrl, setLogoDataUrl }) {
   // Start with a copy of the provided slide deck, so edits are possible
   const [slides, setSlides] = useState(JSON.parse(JSON.stringify(SLIDE_DECK_20)));
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -140,6 +142,7 @@ function SlideEditor() {
           render={slides[currentIdx]}
           editMode={true}
           onBlockUpdate={(i, newBlk) => editBlock(i, newBlk)}
+          logoDataUrl={logoDataUrl}
         />
         {/* Buttons to re-order slides */}
         <div style={{ marginTop: 12 }}>

@@ -1,18 +1,23 @@
 import React from "react";
 
-// PUBLIC_INTERFACE
-function VlinderLogo({ style = {}, className = "" }) {
-  /**
-   * Renders the official Vlinder logo with title as a PNG image.
-   * Used for branding in slides and header as per design notes.
-   * @param style - Additional style overrides
-   */
+/**
+ * PUBLIC_INTERFACE
+ * VlinderLogo renders the current brand logo.
+ * Accepts a logoDataUrl prop to override the default; for dynamic branding/logo swap.
+ *
+ *  - logoDataUrl: DataURL or image URL string (optional). If not provided, fallback to default logo asset.
+ *  - style: CSS style object
+ *  - className: optional
+ */
+function VlinderLogo({ logoDataUrl, style = {}, className = "" }) {
+  let src =
+    typeof logoDataUrl === "string" && logoDataUrl.length > 15
+      ? logoDataUrl
+      : process.env.PUBLIC_URL + "/20250704_094640_vlinder-logo-with-title.png";
+
   return (
     <img
-      src={
-        process.env.PUBLIC_URL +
-        "/20250704_094640_vlinder-logo-with-title.png"
-      }
+      src={src}
       alt="Vlinder Logo"
       style={{
         display: "block",

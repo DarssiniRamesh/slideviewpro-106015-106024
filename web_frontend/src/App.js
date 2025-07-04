@@ -6,6 +6,8 @@ import { SLIDE_DECK_20 } from "./SlideDeck20";
 import "./slideDeckTheme.css";
 import { exportSlidesAsPDF } from "./PDFExporter";
 import SlideEditor from "./SlideEditor";
+import { useLogo } from "./LogoProvider";
+import BrandingControl from "./BrandingControl";
 
 const SLIDE_COUNT = 20;
 
@@ -13,6 +15,7 @@ function App() {
   const [theme, setTheme] = useState("light");
   const [slideIdx, setSlideIdx] = useState(0);
   const [editorMode, setEditorMode] = useState(false); // Toggle Editor/Player view
+  const { logoDataUrl, setLogoDataUrl } = useLogo();
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -51,12 +54,15 @@ function App() {
   // PUBLIC_INTERFACE
   const downloadSlidesAsPDF = async () => {
     // Use jsPDF+html2canvas to accurately capture all slides with layout and logo
-    const logoPath =
-      process.env.PUBLIC_URL + "/20250704_094640_vlinder-logo-with-title.png";
+    // Prefer user logo, else fallback to default
     await exportSlidesAsPDF({
       slides,
-      SlideComponent: Slide,
-      logoPath,
+      SlideComponent: (props) => (
+        <Slide {...props} logoDataUrl={logoDataUrl} />
+      ),
+      logoPath:
+        logoDataUrl ||
+        process.env.PUBLIC_URL + "/20250704_094640_vlinder-logo-with-title.png",
     });
   };
 
@@ -77,71 +83,89 @@ function App() {
           top: 0,
           left: 0,
           zIndex: 100,
-          height: 68,
+          height: editorMode ? 114 : 68,
+          flexDirection: "column",
         }}
       >
-        <VlinderLogo style={{ width: 40, height: 40, marginRight: 16 }} />
-        <div
-          style={{
-            fontWeight: 600,
-            fontSize: 22,
-            color: "#1565c0",
-            letterSpacing: "1px",
-          }}
-        >
-          Vlinder + Klefki: Privacy-Preserving Proposal
+        <div style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+        }}>
+          <VlinderLogo logoDataUrl={logoDataUrl} style={{ width: 40, height: 40, marginRight: 16 }} />
+          <div
+            style={{
+              fontWeight: 600,
+              fontSize: 22,
+              color: "#1565c0",
+              letterSpacing: "1px",
+            }}
+          >
+            Vlinder + Klefki: Privacy-Preserving Proposal
+          </div>
+          <div style={{ flex: 1 }} />
+          <button
+            className="theme-toggle"
+            onClick={toggleTheme}
+            aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+            style={{
+              position: "static",
+              marginLeft: 18,
+            }}
+          >
+            {theme === "light" ? "🌙 Dark" : "☀️ Light"}
+          </button>
+          <button
+            onClick={downloadSlidesAsPDF}
+            style={{
+              marginLeft: 12,
+              background: "#1565c0",
+              color: "#fff",
+              border: "none",
+              borderRadius: 8,
+              padding: "9px 22px",
+              fontWeight: 600,
+              fontSize: 15,
+              boxShadow: "0 2px 6px rgba(21,101,192,0.07)",
+              cursor: "pointer",
+              transition: "background .23s",
+            }}
+          >
+            Download PDF
+          </button>
+          <button
+            onClick={() => setEditorMode((m) => !m)}
+            style={{
+              marginLeft: 14,
+              background: "#f8e248",
+              color: "#222",
+              fontWeight: 600,
+              fontSize: 15,
+              padding: "9px 18px",
+              border: "none",
+              borderRadius: 8,
+              boxShadow: "0 2px 6px rgba(255,224,41,0.12)",
+              cursor: "pointer"
+            }}
+          >
+            {editorMode ? "Exit Editor" : "Open Editor"}
+          </button>
         </div>
-        <div style={{ flex: 1 }} />
-        <button
-          className="theme-toggle"
-          onClick={toggleTheme}
-          aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
-          style={{
-            position: "static",
-            marginLeft: 18,
-          }}
-        >
-          {theme === "light" ? "🌙 Dark" : "☀️ Light"}
-        </button>
-        <button
-          onClick={downloadSlidesAsPDF}
-          style={{
-            marginLeft: 12,
-            background: "#1565c0",
-            color: "#fff",
-            border: "none",
-            borderRadius: 8,
-            padding: "9px 22px",
-            fontWeight: 600,
-            fontSize: 15,
-            boxShadow: "0 2px 6px rgba(21,101,192,0.07)",
-            cursor: "pointer",
-            transition: "background .23s",
-          }}
-        >
-          Download PDF
-        </button>
-        <button
-          onClick={() => setEditorMode((m) => !m)}
-          style={{
-            marginLeft: 14,
-            background: "#f8e248",
-            color: "#222",
-            fontWeight: 600,
-            fontSize: 15,
-            padding: "9px 18px",
-            border: "none",
-            borderRadius: 8,
-            boxShadow: "0 2px 6px rgba(255,224,41,0.12)",
-            cursor: "pointer"
-          }}
-        >
-          {editorMode ? "Exit Editor" : "Open Editor"}
-        </button>
+        {editorMode && (
+          <div style={{
+            width: "100%",
+            marginTop: 10,
+            display: "flex",
+            justifyContent: "flex-start"
+          }}>
+            {/* Expose logo upload only in editor mode */}
+            <BrandingControl logoDataUrl={logoDataUrl} onChange={setLogoDataUrl} />
+          </div>
+        )}
       </header>
       <div
         style={{
-          marginTop: 84,
+          marginTop: editorMode ? 130 : 84,
           minHeight: "calc(100vh - 100px)",
           display: "flex",
           flexDirection: "column",
@@ -150,13 +174,14 @@ function App() {
         }}
       >
         {editorMode ? (
-          <SlideEditor />
+          <SlideEditor logoDataUrl={logoDataUrl} setLogoDataUrl={setLogoDataUrl} />
         ) : (
           <>
             <Slide
               slideNumber={slideIdx + 1}
               totalSlides={SLIDE_COUNT}
               render={slides[slideIdx]}
+              logoDataUrl={logoDataUrl}
             />
             <nav
               aria-label="Slide navigation"

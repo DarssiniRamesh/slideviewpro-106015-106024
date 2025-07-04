@@ -6,9 +6,10 @@ import VlinderLogo from "../VlinderLogo";
  * Renders the branded Vlinder logo. Optionally custom style.
  * Props:
  *   - style: object (optional)
+ *   - logoDataUrl: optional, DataURL or url string for dynamic logo
  */
-function LogoBlock({ style }) {
-  return <VlinderLogo style={style} />;
+function LogoBlock({ style, logoDataUrl }) {
+  return <VlinderLogo style={style} logoDataUrl={logoDataUrl} />;
 }
 
 export default LogoBlock;

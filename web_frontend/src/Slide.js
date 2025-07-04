@@ -5,9 +5,9 @@ import { getBlockComponent } from "./components/BlockRegistry";
  * PUBLIC_INTERFACE
  * Modular Slide wrapper. If 'render' is a set of modular blocks (as in new deck), dynamically render slide content
  * using a registry keyed by component 'type'. Fallback to rendering JSX/function for legacy compatibility.
- * Props: { slideNumber, totalSlides, render (blocks|JSX|function|object) }
+ * Props: { slideNumber, totalSlides, render (blocks|JSX|function|object), logoDataUrl }
  */
-function Slide({ slideNumber, totalSlides, render, editMode, onBlockUpdate }) {
+function Slide({ slideNumber, totalSlides, render, editMode, onBlockUpdate, logoDataUrl }) {
   const isModular =
     Array.isArray(render?.components) &&
     render?.components.every((blk) => blk && typeof blk.type === "string");
@@ -23,6 +23,10 @@ function Slide({ slideNumber, totalSlides, render, editMode, onBlockUpdate }) {
         );
       }
       const { type, ...rest } = blk;
+      // For logo block, forward logoDataUrl
+      if (blk.type === "logo") {
+        return <Comp key={blk.key || idx} {...rest} logoDataUrl={logoDataUrl} />;
+      }
       // If block is diagram, supply handlers for live diagram saving
       if (blk.type === "diagram") {
         return (
