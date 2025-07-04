@@ -5,13 +5,14 @@ import VlinderLogo from "./VlinderLogo";
 import { SLIDE_DECK_20 } from "./SlideDeck20";
 import "./slideDeckTheme.css";
 import { exportSlidesAsPDF } from "./PDFExporter";
+import SlideEditor from "./SlideEditor";
 
 const SLIDE_COUNT = 20;
 
-// PUBLIC_INTERFACE
 function App() {
   const [theme, setTheme] = useState("light");
   const [slideIdx, setSlideIdx] = useState(0);
+  const [editorMode, setEditorMode] = useState(false); // Toggle Editor/Player view
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -22,8 +23,9 @@ function App() {
     setTheme((prevTheme) => (prevTheme === "light" ? "dark" : "light"));
   };
 
-  // Keyboard navigation (left/right arrows/space)
+  // Keyboard navigation (left/right arrows/space) in Player Mode only
   useEffect(() => {
+    if (editorMode) return;
     function handleKey(e) {
       if (e.key === "ArrowRight" || e.key === " ") {
         setSlideIdx((idx) => Math.min(idx + 1, SLIDE_COUNT - 1));
@@ -33,7 +35,7 @@ function App() {
     }
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, []);
+  }, [editorMode]);
 
   // PUBLIC_INTERFACE
   const nextSlide = useCallback(
@@ -119,6 +121,23 @@ function App() {
         >
           Download PDF
         </button>
+        <button
+          onClick={() => setEditorMode((m) => !m)}
+          style={{
+            marginLeft: 14,
+            background: "#f8e248",
+            color: "#222",
+            fontWeight: 600,
+            fontSize: 15,
+            padding: "9px 18px",
+            border: "none",
+            borderRadius: 8,
+            boxShadow: "0 2px 6px rgba(255,224,41,0.12)",
+            cursor: "pointer"
+          }}
+        >
+          {editorMode ? "Exit Editor" : "Open Editor"}
+        </button>
       </header>
       <div
         style={{
@@ -130,70 +149,76 @@ function App() {
           justifyContent: "center",
         }}
       >
-        <Slide
-          slideNumber={slideIdx + 1}
-          totalSlides={SLIDE_COUNT}
-          render={slides[slideIdx].render}
-        />
-        <nav
-          aria-label="Slide navigation"
-          style={{
-            marginTop: 30,
-            display: "flex",
-            alignItems: "center",
-            gap: 22,
-          }}
-        >
-          <button
-            onClick={prevSlide}
-            disabled={slideIdx === 0}
-            style={{
-              background: slideIdx === 0 ? "#e9ecef" : "#1565c0",
-              color: slideIdx === 0 ? "#8f8f8f" : "#fff",
-              border: "none",
-              borderRadius: 8,
-              padding: "10px 20px",
-              fontSize: 18,
-              fontWeight: 500,
-              cursor: slideIdx === 0 ? "not-allowed" : "pointer",
-              transition: "background .2s"
-            }}
-            tabIndex={0}
-            aria-label="Previous slide"
-          >
-            ← Prev
-          </button>
-          <span
-            style={{
-              fontWeight: 500,
-              color: "#555",
-              fontSize: 17,
-              minWidth: 72,
-              textAlign: "center"
-            }}
-          >
-            {slideIdx + 1} / {SLIDE_COUNT}
-          </span>
-          <button
-            onClick={nextSlide}
-            disabled={slideIdx === SLIDE_COUNT - 1}
-            style={{
-              background: slideIdx === SLIDE_COUNT - 1 ? "#e9ecef" : "#1565c0",
-              color: slideIdx === SLIDE_COUNT - 1 ? "#8f8f8f" : "#fff",
-              border: "none",
-              borderRadius: 8,
-              padding: "10px 20px",
-              fontSize: 18,
-              fontWeight: 500,
-              cursor: slideIdx === SLIDE_COUNT - 1 ? "not-allowed" : "pointer",
-              transition: "background .2s"
-            }}
-            tabIndex={0}
-            aria-label="Next slide"
-          >
-            Next →
-          </button>
-        </nav>
+        {editorMode ? (
+          <SlideEditor />
+        ) : (
+          <>
+            <Slide
+              slideNumber={slideIdx + 1}
+              totalSlides={SLIDE_COUNT}
+              render={slides[slideIdx]}
+            />
+            <nav
+              aria-label="Slide navigation"
+              style={{
+                marginTop: 30,
+                display: "flex",
+                alignItems: "center",
+                gap: 22,
+              }}
+            >
+              <button
+                onClick={prevSlide}
+                disabled={slideIdx === 0}
+                style={{
+                  background: slideIdx === 0 ? "#e9ecef" : "#1565c0",
+                  color: slideIdx === 0 ? "#8f8f8f" : "#fff",
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "10px 20px",
+                  fontSize: 18,
+                  fontWeight: 500,
+                  cursor: slideIdx === 0 ? "not-allowed" : "pointer",
+                  transition: "background .2s"
+                }}
+                tabIndex={0}
+                aria-label="Previous slide"
+              >
+                ← Prev
+              </button>
+              <span
+                style={{
+                  fontWeight: 500,
+                  color: "#555",
+                  fontSize: 17,
+                  minWidth: 72,
+                  textAlign: "center"
+                }}
+              >
+                {slideIdx + 1} / {SLIDE_COUNT}
+              </span>
+              <button
+                onClick={nextSlide}
+                disabled={slideIdx === SLIDE_COUNT - 1}
+                style={{
+                  background: slideIdx === SLIDE_COUNT - 1 ? "#e9ecef" : "#1565c0",
+                  color: slideIdx === SLIDE_COUNT - 1 ? "#8f8f8f" : "#fff",
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "10px 20px",
+                  fontSize: 18,
+                  fontWeight: 500,
+                  cursor: slideIdx === SLIDE_COUNT - 1 ? "not-allowed" : "pointer",
+                  transition: "background .2s"
+                }}
+                tabIndex={0}
+                aria-label="Next slide"
+              >
+                Next →
+              </button>
+            </nav>
+          </>
+        )}
       </div>
     </div>
   );
