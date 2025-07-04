@@ -9,16 +9,20 @@ function VlinderLogo({ style = {}, className = "" }) {
    */
   return (
     <img
-      src={process.env.PUBLIC_URL + "/vlinder-logo-with-title.png"}
+      src={
+        process.env.PUBLIC_URL +
+        "/20250704_094640_vlinder-logo-with-title.png"
+      }
       alt="Vlinder Logo"
       style={{
         display: "block",
         height: 40,
-        ...style
+        ...style,
       }}
       className={className}
       draggable={false}
       aria-label="Vlinder Logo"
+      loading="eager"
     />
   );
 }
