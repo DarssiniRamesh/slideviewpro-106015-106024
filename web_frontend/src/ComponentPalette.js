@@ -17,7 +17,15 @@ import React from "react";
 const DEFAULT_BLOCKS = [
   { type: "text", text: "Sample text", style: { fontSize: 18 } },
   { type: "image", src: "", alt: "Image" },
-  { type: "diagram", description: "Diagram placeholder" },
+  {
+    type: "diagram",
+    diagramData: {
+      elements: [],
+      appState: { viewBackgroundColor: "#fff" },
+      files: {} // Excalidraw compatible
+    },
+    description: "Click to draw and edit a diagram"
+  },
   { type: "logo", style: { height: 36 } }
 ];
 

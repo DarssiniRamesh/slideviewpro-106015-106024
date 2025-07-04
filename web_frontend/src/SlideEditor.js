@@ -138,6 +138,8 @@ function SlideEditor() {
           slideNumber={currentIdx + 1}
           totalSlides={slides.length}
           render={slides[currentIdx]}
+          editMode={true}
+          onBlockUpdate={(i, newBlk) => editBlock(i, newBlk)}
         />
         {/* Buttons to re-order slides */}
         <div style={{ marginTop: 12 }}>

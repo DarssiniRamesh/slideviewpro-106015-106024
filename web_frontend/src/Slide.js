@@ -7,27 +7,35 @@ import { getBlockComponent } from "./components/BlockRegistry";
  * using a registry keyed by component 'type'. Fallback to rendering JSX/function for legacy compatibility.
  * Props: { slideNumber, totalSlides, render (blocks|JSX|function|object) }
  */
-function Slide({ slideNumber, totalSlides, render }) {
+function Slide({ slideNumber, totalSlides, render, editMode, onBlockUpdate }) {
   const isModular =
     Array.isArray(render?.components) &&
     render?.components.every((blk) => blk && typeof blk.type === "string");
 
   function renderBlocks(blocks) {
     return blocks.map((blk, idx) => {
-      // Support nested children (e.g., for layout, blocks, etc. in deck) in a future expansion.
-      // For now, just render simple single-level blocks for core types.
       const Comp = getBlockComponent(blk.type);
       if (!Comp) {
-        // Unrecognized type: fall back to a div
         return (
           <div key={blk.key || idx} style={blk.style}>
             [Unknown block: {blk.type}]
           </div>
         );
       }
-      // Pass all block props (key, text, style, etc.) except "type"
       const { type, ...rest } = blk;
-      // Use blk.key for React key if available -- fallback to idx
+      // If block is diagram, supply handlers for live diagram saving
+      if (blk.type === "diagram") {
+        return (
+          <Comp
+            key={blk.key || idx}
+            {...rest}
+            editable={!!editMode}
+            onChange={data => {
+              if (onBlockUpdate) onBlockUpdate(idx, { ...blk, ...data });
+            }}
+          />
+        );
+      }
       return <Comp key={blk.key || idx} {...rest} />;
     });
   }
