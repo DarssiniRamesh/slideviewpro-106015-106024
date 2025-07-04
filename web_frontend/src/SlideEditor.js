@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import Slide from "./Slide";
 import Sidebar from "./Sidebar";
 import ComponentPalette from "./ComponentPalette";
@@ -12,12 +12,24 @@ import { SLIDE_DECK_20 } from "./SlideDeck20";
  * Props:
  *  - logoDataUrl: Current DataURL for custom logo (optional, for dynamic app state sharing)
  *  - setLogoDataUrl: Function to change the logo (optional, for custom upload from BrandingControl)
+ *  - initialSlides: (optional) array of slides to initialize the deck
+ *  - onSlidesChange: (optional) callback called with slides array on any update
  */
-function SlideEditor({ logoDataUrl, setLogoDataUrl }) {
-  // Start with a copy of the provided slide deck, so edits are possible
-  const [slides, setSlides] = useState(JSON.parse(JSON.stringify(SLIDE_DECK_20)));
+function SlideEditor({ logoDataUrl, setLogoDataUrl, initialSlides, onSlidesChange }) {
+  // Start with a copy of passed-in slides (deep clone to separate editing)
+  const [slides, setSlides] = useState(() =>
+    initialSlides
+      ? JSON.parse(JSON.stringify(initialSlides))
+      : JSON.parse(JSON.stringify(SLIDE_DECK_20))
+  );
   const [currentIdx, setCurrentIdx] = useState(0);
   const [editMode, setEditMode] = useState(false); // switch to edit a block inline
+
+  // Keep parent up to date with latest slides
+  useEffect(() => {
+    if (onSlidesChange) onSlidesChange(slides);
+    // eslint-disable-next-line
+  }, [slides]);
 
   // --- Slide Operations ---
   // PUBLIC_INTERFACE
@@ -101,6 +113,15 @@ function SlideEditor({ logoDataUrl, setLogoDataUrl }) {
   // --- UI Helpers
   const onSlideSelect = (idx) => setCurrentIdx(idx);
   const onSlideDrop = (fromIdx, toIdx) => moveSlide(fromIdx, toIdx);
+
+  // If initialSlides changes (deck import), reset to new deck and idx 0
+  useEffect(() => {
+    if (initialSlides) {
+      setSlides(JSON.parse(JSON.stringify(initialSlides)));
+      setCurrentIdx(0);
+    }
+    // eslint-disable-next-line
+  }, [initialSlides]);
 
   // -- Editor workspace: shows controls and slide preview
   return (

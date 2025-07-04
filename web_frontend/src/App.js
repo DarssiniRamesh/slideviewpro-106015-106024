@@ -11,10 +11,59 @@ import BrandingControl from "./BrandingControl";
 
 const SLIDE_COUNT = 20;
 
+/**
+ * Persist/load decks to/from JSON.
+ * All data for slide deck is { slides: Array, logoDataUrl?: string }
+ */
+function downloadDeckAsJSON({ slides, logoDataUrl }) {
+  const json = JSON.stringify({ slides, logoDataUrl }, null, 2);
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "slide_deck.json";
+  document.body.appendChild(link);
+  link.click();
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+    link.remove();
+  }, 300);
+}
+
+function triggerLoadDeckFromJSON(onLoad) {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".json,application/json";
+  input.style.display = "none";
+  input.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const obj = JSON.parse(event.target.result);
+        if (!obj.slides || !Array.isArray(obj.slides)) {
+          alert("Invalid deck JSON: missing slides array.");
+          return;
+        }
+        onLoad(obj);
+      } catch (err) {
+        alert("Error loading deck: Invalid JSON.");
+      }
+    };
+    reader.readAsText(file);
+  });
+  document.body.appendChild(input);
+  input.click();
+  setTimeout(() => input.remove(), 2500);
+}
+
 function App() {
   const [theme, setTheme] = useState("light");
   const [slideIdx, setSlideIdx] = useState(0);
   const [editorMode, setEditorMode] = useState(false); // Toggle Editor/Player view
+  const [editorSlides, setEditorSlides] = useState(null); // To sync deck in editor
+  const [deckEpoch, setDeckEpoch] = useState(0); // For reloading SlideEditor on import
   const { logoDataUrl, setLogoDataUrl } = useLogo();
 
   useEffect(() => {
@@ -53,8 +102,6 @@ function App() {
 
   // PUBLIC_INTERFACE
   const downloadSlidesAsPDF = async () => {
-    // Use jsPDF+html2canvas to accurately capture all slides with layout and logo
-    // Prefer user logo, else fallback to default
     await exportSlidesAsPDF({
       slides,
       SlideComponent: (props) => (
@@ -66,7 +113,7 @@ function App() {
     });
   };
 
-  // -- Full slide content (all 20) is in SlideDeck20.js using SLIDE_DECK_20
+  // Use custom editor state if available, otherwise SLIDE_DECK_20
   const slides = SLIDE_DECK_20;
 
   return (
@@ -150,6 +197,53 @@ function App() {
           >
             {editorMode ? "Exit Editor" : "Open Editor"}
           </button>
+          {editorMode && (
+            <>
+              <button
+                onClick={() => {
+                  downloadDeckAsJSON({
+                    slides: editorSlides || SLIDE_DECK_20,
+                    logoDataUrl
+                  });
+                }}
+                style={{
+                  marginLeft: 8,
+                  background: "#15b071",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "9px 15px",
+                  fontWeight: 550,
+                  fontSize: 15,
+                  cursor: "pointer",
+                  boxShadow: "0 2px 6px rgba(21,176,113,0.13)"
+                }}
+                title="Export current slide deck (and logo) as JSON"
+              >Export JSON</button>
+              <button
+                onClick={() => {
+                  triggerLoadDeckFromJSON((obj) => {
+                    setEditorSlides(obj.slides);
+                    if (obj.logoDataUrl !== undefined) setLogoDataUrl(obj.logoDataUrl);
+                    setDeckEpoch(prev => prev + 1);
+                  });
+                }}
+                style={{
+                  marginLeft: 7,
+                  background: "#1565c0",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "9px 15px",
+                  fontWeight: 550,
+                  fontSize: 15,
+                  cursor: "pointer",
+                  boxShadow: "0 2px 6px rgba(21,101,192,0.04)"
+                }}
+                title="Import/load a slide deck from a JSON file"
+              >Import JSON</button>
+            </>
+          )}
         </div>
         {editorMode && (
           <div style={{
@@ -158,7 +252,6 @@ function App() {
             display: "flex",
             justifyContent: "flex-start"
           }}>
-            {/* Expose logo upload only in editor mode */}
             <BrandingControl logoDataUrl={logoDataUrl} onChange={setLogoDataUrl} />
           </div>
         )}
@@ -174,7 +267,13 @@ function App() {
         }}
       >
         {editorMode ? (
-          <SlideEditor logoDataUrl={logoDataUrl} setLogoDataUrl={setLogoDataUrl} />
+          <SlideEditor
+            key={deckEpoch}
+            logoDataUrl={logoDataUrl}
+            setLogoDataUrl={setLogoDataUrl}
+            initialSlides={editorSlides || SLIDE_DECK_20}
+            onSlidesChange={setEditorSlides}
+          />
         ) : (
           <>
             <Slide
